@@ -8,6 +8,7 @@ pyinquirer = "*"
 imgcat = "*"
 prompt-toolkit = "*"
 pillow = "*"
+typer = {extras = ["all"], version = "*"}
 
 [dev-packages]
 
