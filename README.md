@@ -1,6 +1,6 @@
 # How to use
 ```
-pipenv run python main.py
+pipenv run python3.9 main.py
 ```
 or
 ```

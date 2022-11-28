@@ -179,8 +179,6 @@ def format(path: str = ''):
 
     input_directory_path = get_input_path_from_config()
     output_directory_path = get_output_path_from_config()
-
-    print(input_directory_path)
     
     # to store files in a list
     filelist = []
@@ -191,7 +189,9 @@ def format(path: str = ''):
             if valid_filetype(image):
                 filelist.append(image)
 
-    print(filelist)
+    if not filelist:
+        print(f'\nNo files found in input directory 🤔 Might want to double check that.')
+        return
 
     index = 0
     for filename in filelist:
