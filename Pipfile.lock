@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ed16eb01ade3abb6c50a11e14508b6fd5c1f40b1715235f2e3579148f58b6a99"
+            "sha256": "65bdfc20765de47c8c3b18e522962d852d677528f8e9a433283c01a002058c11"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -236,6 +236,14 @@
                 "sha256:ba3a3775974105c221d31141f2c116f4fd65c5ceb0698657a11e9f295ec93fd0"
             ],
             "version": "==12.6.0"
+        },
+        "send2trash": {
+            "hashes": [
+                "sha256:d2c24762fd3759860a0aff155e45871447ea58d2be6bdd39b5c8f966a0c99c2d",
+                "sha256:f20eaadfdb517eaca5ce077640cb261c7d2698385a6a0f072a4a5447fd49fa08"
+            ],
+            "index": "pypi",
+            "version": "==1.8.0"
         },
         "shellingham": {
             "hashes": [

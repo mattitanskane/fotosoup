@@ -9,6 +9,7 @@ imgcat = "*"
 prompt-toolkit = "*"
 pillow = "*"
 typer = {extras = ["all"], version = "*"}
+send2trash = "*"
 
 [dev-packages]
 

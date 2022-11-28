@@ -9,6 +9,9 @@ import datetime
 import regex
 import typer
 import configparser
+import os
+import send2trash
+import shutil
 from pathlib import Path
 
 app = typer.Typer()
@@ -28,12 +31,12 @@ class DateValidator(Validator):
                 message='Please enter a valid date',
                 cursor_position=len(document.text))  # Move cursor to end
 
-def promptForCustomDate():
+def promp_for_custom_date():
     date_questions = [
         {
             'type': 'input',
             'name': 'date',
-            'message': 'Please provide a date in ISO-8601:',
+            'message': 'Please provide a date in format YYYY-MM-DD:',
             'default': '',
             'validate': DateValidator,
         }
@@ -42,7 +45,7 @@ def promptForCustomDate():
     date_answers = prompt(date_questions)
     return date_answers["date"]
 
-def promptForTags():
+def prompt_for_tags():
     questions = [
         {
             'type': 'input',
@@ -58,10 +61,10 @@ def promptForTags():
     return answers["tags"]
 
 
-def formatFilename(creation_time, tags):
-    return creation_time + "-" + tags
+def format_filename(creation_time, tags, filetype):
+    return creation_time + "-" + tags + '.' + filetype.lower()
 
-def finalConfirmation(filename):
+def final_confirmation(filename):
     final_questions = [
         {
             'type': 'confirm',
@@ -81,7 +84,7 @@ def finalConfirmation(filename):
 
     return final_answers
 
-def config():
+def init_config():
     config_file = Path("./fotosoup.ini")
 
     if config_file.is_file():
@@ -134,36 +137,118 @@ def config():
 
     return True
 
+def get_input_path_from_config():
+    config_file = Path("./fotosoup.ini")
+
+    if config_file.is_file():
+        config = configparser.ConfigParser()
+        config.read('fotosoup.ini')
+
+        return config['DEFAULT']['inputdirectory']
+
+    return False
+
+def get_output_path_from_config():
+    config_file = Path("./fotosoup.ini")
+
+    if config_file.is_file():
+        config = configparser.ConfigParser()
+        config.read('fotosoup.ini')
+
+        return config['DEFAULT']['outputdirectory']
+
+    return False
+
+def valid_filetype(file):
+    file = file.lower()
+
+    if '.jpg' in file:
+        return True
+        
+    if '.jpeg' in file:
+        return True
+        
+    if '.png' in file:
+        return True
+
+    return False
+
 @app.command()
-def format(path: str, single: bool = False):
-    config()
+def format(path: str = ''):
+    init_config()
 
-    image = Image.open(path)
-    exif = image.getexif()
-    creation_time = exif.get(306)
+    input_directory_path = get_input_path_from_config()
+    output_directory_path = get_output_path_from_config()
 
-    print(f'Behold! A photo 🙇‍♂️')
-    imgcat(open(path))
+    print(input_directory_path)
+    
+    # to store files in a list
+    filelist = []
+    
+    # dirs=directories
+    for (root, dirs, file) in os.walk(input_directory_path):
+        for image in file:
+            if valid_filetype(image):
+                filelist.append(image)
 
-    if creation_time is None:
-        print(f'Date data seems to be missing 🤔')
-        creation_time = promptForCustomDate()
-    else:
-        date = datetime.datetime.strptime(creation_time, '%Y:%m:%d %H:%M:%S').strftime('%Y-%m-%d')
+    print(filelist)
 
-        print(f'Photo was taken on {date} 📸')
+    index = 0
+    for filename in filelist:
+        filepath = input_directory_path + filename
+        image = Image.open(filepath)
+        image_filetype = image.format
+        exif = image.getexif()
+        creation_time = exif.get(306)
 
-    tags = promptForTags();
+        # print(f'Behold! A photo 🙇‍♂️')
+        imgcat(open(filepath))
 
-    filename = formatFilename(date, tags);
+        if creation_time is None:
+            print(f'Date data seems to be missing 🤔')
+            date = promp_for_custom_date()
+        else:
+            date = datetime.datetime.strptime(creation_time, '%Y:%m:%d %H:%M:%S').strftime('%Y-%m-%d')
 
-    final_answers = finalConfirmation(filename)
+            print(f'Photo was taken on {date} 📸')
 
-    filename = filename if final_answers['confirm'] else final_answers['modify']
+        tags = prompt_for_tags();
 
-    print(f'Here you go, the final filename: {filename}')
+        formatted_filename = format_filename(date, tags, image_filetype);
 
-    return filename
+        final_answers = final_confirmation(formatted_filename)
+
+        formatted_filename = formatted_filename if final_answers['confirm'] else final_answers['modify']
+
+        print(f'Here you go, the final filename: {formatted_filename}')
+
+        # TODO: Move file to output directory
+        # TODO: Trash original from input directory
+
+        if not os.path.exists(output_directory_path):
+            os.makedirs(output_directory_path)
+        
+        shutil.move(filepath, output_directory_path + formatted_filename)
+
+        index = index + 1
+        if index is not len(filelist):            
+            print(f'>')
+            print(f'>')
+            print(f'> Next photo coming up')
+            print(f'>')
+            print(f'>')
+
+        else:
+            print(f'>')
+            print(f'>')
+            print(f'> That was the last photo!')
+            print(f'>')
+            print(f'>')
+    
+    print('\n')
+    print('Bye! 👋')
+
+    return True
 
 if __name__ == "__main__":
     app()
