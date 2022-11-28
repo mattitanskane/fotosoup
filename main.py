@@ -25,7 +25,7 @@ class TagValidator(Validator):
                 cursor_position=len(document.text))  # Move cursor to end
 class DateValidator(Validator): 
     def validate(self, document):
-        ok = regex.match('^[0-9\-]*$', document.text)
+        ok = regex.match('^[0-9-]*$', document.text)
         if not ok:
             raise ValidationError(
                 message='Please enter a valid date',
@@ -61,10 +61,13 @@ def prompt_for_tags():
     return answers["tags"]
 
 
-def format_filename(creation_time, tags, filetype):
+def format_filename(creation_time, tags, filetype, include_extension = True):
+    if not include_extension:
+        return creation_time + "-" + tags
+
     return creation_time + "-" + tags + '.' + filetype.lower()
 
-def final_confirmation(filename):
+def final_confirmation(filename, filename_without_extension):
     final_questions = [
         {
             'type': 'confirm',
@@ -75,7 +78,7 @@ def final_confirmation(filename):
             'type': 'input',
             'name': 'modify',
             'message': 'Please provide a fixed filename:',
-            'default': filename,
+            'default': filename_without_extension,
             'when': lambda answers: not answers['confirm'],
         }
     ]
@@ -173,6 +176,9 @@ def valid_filetype(file):
 
     return False
 
+def format_filetype(file_extension):
+    return '.' + file_extension.lower()
+
 @app.command()
 def format(path: str = ''):
     init_config()
@@ -214,11 +220,12 @@ def format(path: str = ''):
 
         tags = prompt_for_tags();
 
+        formatted_filename_without_extension = format_filename(date, tags, image_filetype, False);
         formatted_filename = format_filename(date, tags, image_filetype);
 
-        final_answers = final_confirmation(formatted_filename)
+        final_answers = final_confirmation(formatted_filename, formatted_filename_without_extension)
 
-        formatted_filename = formatted_filename if final_answers['confirm'] else final_answers['modify']
+        formatted_filename = formatted_filename if final_answers['confirm'] else final_answers['modify'] + format_filetype(image_filetype)
 
         print(f'Here you go, the final filename: {formatted_filename}')
 
