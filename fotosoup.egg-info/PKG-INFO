@@ -1,0 +1,26 @@
+Metadata-Version: 2.1
+Name: fotosoup
+Version: 0.0.1
+Summary: Rename images in an opinionated way and move them between files.
+Home-page: https://github.com/mattitanskane/fotosoup
+Author: Matti Tanskanen
+License: GNU GENERAL PUBLIC LICENSE
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Operating System :: Only tested on MacOs Monterey
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# How to use
+```
+pipenv run python main.py
+```
+or
+```
+pipenv shell
+python main.py
+```
+# Credits
+![Image of a bird for testing purposes](https://github.com/mattitanskane/fotosoup/blob/main/test.jpg)
+
+Test photo by <a href="https://unsplash.com/@aarngiri?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">AARN GIRI</a> on <a href="https://unsplash.com/s/photos/bird?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>

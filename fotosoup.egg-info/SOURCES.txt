@@ -1,0 +1,9 @@
+LICENSE
+README.md
+main.py
+setup.py
+fotosoup.egg-info/PKG-INFO
+fotosoup.egg-info/SOURCES.txt
+fotosoup.egg-info/dependency_links.txt
+fotosoup.egg-info/entry_points.txt
+fotosoup.egg-info/top_level.txt

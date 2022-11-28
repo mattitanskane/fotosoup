@@ -7,6 +7,12 @@ or
 pipenv shell
 python main.py
 ```
+
+# Build for production
+```
+python setup.py sdist bdist_wheel
+```
+
 # Credits
 ![Image of a bird for testing purposes](https://github.com/mattitanskane/fotosoup/blob/main/test.jpg)
 
