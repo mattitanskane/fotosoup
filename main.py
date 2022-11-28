@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import pprint
-from PyInquirer import prompt
-from imgcat import imgcat 
-from prompt_toolkit.validation import Validator, ValidationError
-from PIL import Image
 import datetime
 import regex
 import typer
@@ -12,7 +8,12 @@ import configparser
 import os
 import send2trash
 import shutil
+from PyInquirer import prompt
+from imgcat import imgcat 
+from prompt_toolkit.validation import Validator, ValidationError
 from pathlib import Path
+from PIL import Image
+from hashlib import blake2b
 
 app = typer.Typer()
 
@@ -61,9 +62,12 @@ def prompt_for_tags():
     return answers["tags"]
 
 
-def format_filename(creation_time, tags, filetype, include_extension = True):
+def format_filename(creation_time, tags, filetype, include_extension = True, is_duplicate = False):
     if not include_extension:
         return creation_time + "-" + tags
+
+    if is_duplicate:
+        return creation_time + "-" + tags + '#' +  blake2b(digest_size=10, salt=os.urandom(10)).hexdigest() + '.' + filetype.lower() 
 
     return creation_time + "-" + tags + '.' + filetype.lower()
 
@@ -196,7 +200,7 @@ def format(path: str = ''):
                 filelist.append(image)
 
     if not filelist:
-        print(f'\nNo files found in input directory 🤔 Might want to double check that.')
+        print(f'\nNo files found in input directory 🤔 Check fotosoup.ini for directory paths.')
         return
 
     index = 0
@@ -227,15 +231,19 @@ def format(path: str = ''):
 
         formatted_filename = formatted_filename if final_answers['confirm'] else final_answers['modify'] + format_filetype(image_filetype)
 
-        print(f'Here you go, the final filename: {formatted_filename}')
-
-        # TODO: Move file to output directory
-        # TODO: Trash original from input directory
-
         if not os.path.exists(output_directory_path):
             os.makedirs(output_directory_path)
+
+        if os.path.exists(output_directory_path + formatted_filename):
+            print('Found a file with the same name, adding 10 digit hash at the end of the filename.')
+            print('New filename: ' + format_filename(date, tags, image_filetype, True, True))
+            shutil.move(filepath, output_directory_path + format_filename(date, tags, image_filetype, True, True))
+
+        else:
+            print(f'Here you go, the final filename: {formatted_filename}')
+            shutil.move(filepath, output_directory_path + formatted_filename)
         
-        shutil.move(filepath, output_directory_path + formatted_filename)
+        # TODO: Easy deletion   
 
         index = index + 1
         if index is not len(filelist):            
