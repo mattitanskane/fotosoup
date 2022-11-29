@@ -16,7 +16,6 @@ from PIL import Image
 from hashlib import blake2b
 
 app = typer.Typer()
-
 class TagValidator(Validator):
     def validate(self, document):
         ok = regex.match('^[a-zA-Z0-9 ]*$', document.text)
@@ -213,10 +212,10 @@ def format_filetype(file_extension):
     return '.' + file_extension.lower()
 
 @app.command()
-def format(path: str = ''):
+def format(input: str = ''):
     init_config()
 
-    input_directory_path = get_input_path_from_config()
+    input_directory_path = input if input else get_input_path_from_config()
     output_directory_path = get_output_path_from_config()
     
     # to store files in a list
