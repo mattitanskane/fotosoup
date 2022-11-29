@@ -233,7 +233,7 @@ def format(input: str = ''):
 
     index = 0
     for filename in filelist:
-        filepath = input_directory_path + filename
+        filepath = os.path.join(input_directory_path, filename)
         image = Image.open(filepath)
         image_filetype = image.format
         exif = image.getexif()
