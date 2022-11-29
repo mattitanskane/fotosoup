@@ -6,8 +6,8 @@ import regex
 import typer
 import configparser
 import os
-import send2trash
 import shutil
+from send2trash import send2trash
 from PyInquirer import prompt
 from imgcat import imgcat 
 from prompt_toolkit.validation import Validator, ValidationError
@@ -46,21 +46,50 @@ def promp_for_custom_date():
     date_answers = prompt(date_questions)
     return date_answers["date"]
 
-def prompt_for_tags():
+def prompt_for_image():
     questions = [
+        {
+            'type': 'expand',
+            'name': 'action',
+            'message': 'What would you like to do?',
+            'default': '',
+            'choices': [
+                {
+                    'key': 'y',
+                    'name': 'Rename current image',
+                    'value': 'rename'
+                },
+                {
+                    'key': 'n',
+                    'name': 'Skip this image and move to the next one',
+                    'value': 'skip'
+                },
+                {
+                    'key': 'd',
+                    'name': 'Delete this image',
+                    'value': 'delete'
+                },
+            ]
+        },
         {
             'type': 'input',
             'name': 'tags',
             'message': 'Please enter a space separated list of tags:',
             'default': '',
             'validate': TagValidator,
-            'filter': lambda val: val.strip().lower().replace(' ', '-')
+            'filter': lambda val: val.strip().lower().replace(' ', '-'),
+            'when': lambda answers: answers['action'] == 'rename'
         }
     ]
 
     answers = prompt(questions)
-    return answers["tags"]
 
+    if answers['action'] == 'rename':
+        return answers["tags"]
+    elif answers['action'] == 'delete':
+        return False
+    elif answers['action'] == 'skip':
+        return 'skip'
 
 def format_filename(creation_time, tags, filetype, include_extension = True, is_duplicate = False):
     if not include_extension:
@@ -222,7 +251,14 @@ def format(path: str = ''):
 
             print(f'Photo was taken on {date} 📸')
 
-        tags = prompt_for_tags();
+        tags = prompt_for_image();
+
+        if tags == 'skip':
+            # Next image
+            continue
+        elif not tags:
+            send2trash(filepath)
+            continue
 
         formatted_filename_without_extension = format_filename(date, tags, image_filetype, False);
         formatted_filename = format_filename(date, tags, image_filetype);
@@ -243,7 +279,7 @@ def format(path: str = ''):
             print(f'Here you go, the final filename: {formatted_filename}')
             shutil.move(filepath, output_directory_path + formatted_filename)
         
-        # TODO: Easy deletion   
+        # TODO: Easy deletion or skip
 
         index = index + 1
         if index is not len(filelist):            
