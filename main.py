@@ -45,7 +45,7 @@ def promp_for_custom_date():
     date_answers = prompt(date_questions)
     return date_answers["date"]
 
-def prompt_for_image():
+def prompt_for_action():
     questions = [
         {
             'type': 'expand',
@@ -70,6 +70,14 @@ def prompt_for_image():
                 },
             ]
         },
+    ]
+
+    answers = prompt(questions)
+
+    return answers["action"]
+
+def prompt_for_tags():
+    questions = [
         {
             'type': 'input',
             'name': 'tags',
@@ -77,18 +85,12 @@ def prompt_for_image():
             'default': '',
             'validate': TagValidator,
             'filter': lambda val: val.strip().lower().replace(' ', '-'),
-            'when': lambda answers: answers['action'] == 'rename'
         }
     ]
 
     answers = prompt(questions)
 
-    if answers['action'] == 'rename':
-        return answers["tags"]
-    elif answers['action'] == 'delete':
-        return False
-    elif answers['action'] == 'skip':
-        return 'skip'
+    return answers["tags"]
 
 def format_filename(creation_time, tags, filetype, include_extension = True, is_duplicate = False):
     if not include_extension:
@@ -220,6 +222,8 @@ def format(input: str = ''):
     
     # to store files in a list
     filelist = []
+
+    # TODO: Gentle crl-c exit
     
     # dirs=directories
     for (root, dirs, file) in os.walk(input_directory_path):
@@ -235,29 +239,39 @@ def format(input: str = ''):
     for filename in filelist:
         filepath = os.path.join(input_directory_path, filename)
         image = Image.open(filepath)
+
         image_filetype = image.format
         exif = image.getexif()
         creation_time = exif.get(306)
 
-        # print(f'Behold! A photo 🙇‍♂️')
-        imgcat(open(filepath))
-
         if creation_time is None:
-            print(f'Date data seems to be missing 🤔')
-            date = promp_for_custom_date()
+            print(f'This image is missing its Exif date information ❓')
         else:
             date = datetime.datetime.strptime(creation_time, '%Y:%m:%d %H:%M:%S').strftime('%Y-%m-%d')
+            print(f'This image was taken on {date} 📸')
+            
+        imgcat(open(filepath))
 
-            print(f'Photo was taken on {date} 📸')
+        action = prompt_for_action()
 
-        tags = prompt_for_image();
-
-        if tags == 'skip':
-            # Next image
+        if action == 'skip':
+            # Go to next image
             continue
-        elif not tags:
+
+        if action == 'delete':
+            # Delete current image
             send2trash(filepath)
+            # Go to next image
             continue
+
+        if action == 'rename':
+            # Continue with current image
+            pass
+
+        if creation_time is None:
+            date = promp_for_custom_date()
+            
+        tags = prompt_for_tags()
 
         formatted_filename_without_extension = format_filename(date, tags, image_filetype, False);
         formatted_filename = format_filename(date, tags, image_filetype);
