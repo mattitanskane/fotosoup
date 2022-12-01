@@ -225,21 +225,28 @@ def format(input: str = ''):
 
     # TODO: Gentle crl-c exit
     
-    # dirs=directories
     for (root, dirs, file) in os.walk(input_directory_path):
         for image in file:
             if valid_filetype(image):
                 filelist.append(image)
 
     if not filelist:
-        print(f'\nNo files found in input directory 🤔 Check fotosoup.ini for directory paths.')
+        print(f'Input directory not found or no files found. 🤔 Check fotosoup.ini for directory paths.')
         return
 
     index = 0
     for filename in filelist:
         filepath = os.path.join(input_directory_path, filename)
-        image = Image.open(filepath)
 
+        if not os.path.exists(filepath):
+            print(f'No images found in input directory. 🤔')
+
+            if len(filelist) > 1:
+                print(f'There might be something in subdirectories which I currently can\'t handle 😬')
+                
+            continue
+            
+        image = Image.open(filepath)
         image_filetype = image.format
         exif = image.getexif()
         creation_time = exif.get(306)
